@@ -1,0 +1,59 @@
+#! /bin/bash
+# create a new executable file
+#
+
+# directory and files
+DIR=$(dirname $(readlink -f $0))
+ROOT=$(dirname $DIR)
+LIB=$ROOT/lib
+FUNC=$LIB/func
+
+. $FUNC
+
+# script version
+readVersion $ROOT/VERSION
+
+# header
+HEADER="New Executable"
+
+# Help message
+define Usage << "HELP"
+ 
+Usage:
+        ./newex [OPTIONS] PATH
+
+Options:
+    -h              display this message
+    -V              show version
+    -e              edit file after having created it
+
+It creates an executable file at PATH.
+HELP
+
+# default command line options
+OPTIONS=":hVe"
+
+# edit flag
+EDIT=1
+
+# get command line options
+while getopts $OPTIONS option
+do
+    case $option in
+        e) EDIT=0;;
+        h) usage && exit 0;;
+        V) showVersion && exit 0;;
+        *) usage && exit 1;;
+    esac
+done
+shift $(($OPTIND - 1 ))
+
+if [ -z "$1" ]; then
+    usage && exit 1
+fi
+FILE="$1"
+
+touch "$FILE" && chmod +x "$FILE"
+[[ ${EDIT} -eq 0 ]] && "${FCEDIT:-${VISUAL:-${EDITOR:-`which vi`}}}" "$FILE"
+
+exit 0
