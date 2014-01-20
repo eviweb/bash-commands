@@ -1,0 +1,60 @@
+# define a variable content using heredoc
+function define()
+{
+    IFS=$''
+    read -d '' ${1} || true; 
+}
+
+# get version from file
+function readVersion()
+{
+    if [ -e "$1" ]; then
+        VERSION=`cat "$1"`
+    fi
+    if [ -z "$VERSION" ]; then
+        VERSION="0.1.0-DEV"
+    fi
+}
+
+# print a header
+function header()
+{
+    local title="  $HEADER  "
+    local line=$(echo $title | sed -r 's/./-/g')
+    clear
+    echo ""
+    echo "+$line+"
+    echo "|$title|"
+    echo "+$line+"
+    echo ""
+}
+
+# print the help message
+function usage()
+{
+    header
+    echo -e "$Usage"
+}
+
+# display version number
+function showVersion()
+{
+    header
+    echo ""
+    echo -e "version: $VERSION"
+    echo ""
+}
+
+# print a message
+function msg()
+{
+    echo -e "$1"
+}
+
+# print a message
+function error()
+{
+    msg "ERROR: $1"
+    echo ""
+    exit 1
+}
