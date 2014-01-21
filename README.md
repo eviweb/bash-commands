@@ -6,9 +6,9 @@ Available commands
 ------------------
 > please use `-h` option on a command to see its usage information    
     
-* `bin/newex` : to create executable files
-* `bin/newcmd` : to create bash command files        
-
+* `bin/newex` : to create executable files    
+* `bin/newcmd` : to create bash command files    
+* `composer/newcp` : to create new composer based project for Netbeans IDE    
 
 License information
 -------------------
