@@ -1,0 +1,81 @@
+#! /bin/bash
+# newcp 
+# create a new composer based project for Netbeans IDE
+#
+
+# directory and files
+DIR=$(dirname $(readlink -f $0))
+ROOT=$(dirname $DIR)
+LIB=$ROOT/lib
+FUNC=$LIB/func
+
+. $FUNC
+
+# script version
+readVersion $ROOT/VERSION
+
+# header
+HEADER="New Composer Project for Netbeans"
+
+# Help message
+define Usage << "HELP"
+ 
+Usage:
+    ./newcp [OPTIONS] PATH
+
+Options:
+    -h              display this message
+    -V              show version
+
+PATH: is the path where to create the project
+
+It creates a composer based project for Netbeans IDE.
+The basename of PATH will be used as the project name.
+HELP
+
+# get composer command
+COMPOSER=""
+function getComposer()
+{
+    COMPOSER=$(which "composer")
+    if [ -z "$COMPOSER" ]; then
+        curl -sS https://getcomposer.org/installer | php -- --install-dir=/tmp
+        mv /tmp/composer.phar /tmp/composer && chmod +x /tmp/composer
+        COMPOSER=/tmp/composer
+    fi
+}
+
+# default command line options
+OPTIONS=":hV"
+
+# get command line options
+while getopts $OPTIONS option
+do
+    case $option in
+        h) usage && exit 0;;
+        V) showVersion && exit 0;;
+        *) usage && exit 1;;
+    esac
+done
+shift $(($OPTIND - 1 ))
+
+if [ -z "$1" ]; then
+    usage && exit 1
+fi
+FILE="$1"
+
+header
+msg "Try to find composer command"
+
+getComposer
+
+if [ -z "$COMPOSER" ]; then
+    error "> Failed."
+fi
+msg "> Found.\n"
+
+msg "Create project in $FILE"
+echo "y" | "$COMPOSER" create-project --dev -s dev --repository-url=http://satis.evidev.fr eviweb/php-template "$FILE"
+msg "> done."
+echo ""
+exit 0
