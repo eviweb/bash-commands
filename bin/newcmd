@@ -1,0 +1,165 @@
+#! /bin/bash
+# create a new bash command file
+#
+
+# directory and files
+DIR=$(dirname $(readlink -f $0))
+ROOT=$(dirname $DIR)
+LIB=$ROOT/lib
+FUNC=$LIB/func
+
+. $FUNC
+
+# script version
+readVersion $ROOT/VERSION
+
+# header
+HEADER="New Bash Command Generator"
+
+# Help message
+define Usage << "HELP"
+ 
+Usage:
+    ./newex [OPTIONS] PATH
+
+Options:
+    -h              display this message
+    -V              show version
+    -e              edit file after having created it
+    -t              command template to use
+
+It creates an bash command file at PATH, using a template file.
+The template should contain the following tags :
+    {cmdname}       : the command file name
+    {cmddescription}: the command description
+    {cmdheader}     : the command header
+The default template is ./lib/cmd.template and is used to create commands under the main directory.
+HELP
+
+# default command line options
+OPTIONS=":hVet:"
+
+# edit flag
+EDIT=1
+
+# template file
+TEMPLATE=$LIB/cmd.template
+
+# replacements
+declare -A REPL
+REPL[cmdname]=""
+REPL[cmddescription]=""
+REPL[cmdheader]=""
+REPL[cmdroot]=""
+
+# is file local to main directory
+function isLocal()
+{
+    local file=$(readlink -f "$1")
+    if [[ $(echo "$file" | grep "$ROOT") == "" ]]; then
+        return 1
+    else
+        return 0
+    fi
+}
+
+# check target directory
+function checkTargetDir()
+{
+    local dir=$(dirname $(readlink -m "$1"))
+    if [ ! -d "$dir" ] && [[ "$dir" != "" ]]; then
+        header
+        msg "Target directory does not exist, try to create it"
+        mkdir -p "$dir" && msg "> Succeed." || error " > Failed."
+    fi
+}
+
+# check main directory
+function checkMainDir()
+{
+    local file=$(readlink -f "$1")
+    local template="$2"
+    if ! isLocal "$file" && [[ "$template" == "$LIB/cmd.template" ]]; then
+        header
+        error "You must provide a custom template to create a command outside the main directory."
+    fi
+}
+
+# calculate path
+function calculateRootPath()
+{
+    local file=$(readlink -f "$1")
+    local relpath=$(dirname ${file//$ROOT\//})
+    local path="\$DIR"
+    if isLocal "$file"; then
+        while IFS='/' read -ra SPLIT; do
+            for part in "${SPLIT[@]}"; do
+                if [[ "$part" != "." ]]; then
+                    path="\$(dirname $path)"
+                fi
+            done
+        done <<< "$relpath"
+        REPL[cmdroot]=$path
+    fi
+}
+
+# get info from user
+function getFromUser()
+{
+    local msg="$1"
+    local default="$2"
+    local input
+    if [ -n "$default" ]; then
+        default="[$default] "
+    fi
+    read -e -p $msg" " -i "$default" input
+    echo $input
+}
+
+# replace in file
+function replaceInFile()
+{
+    local file="$1"
+    for key in "${!REPL[@]}"
+    do
+        local val="${REPL[$key]}"
+        sed -i 's/{'"$key"'}/'"$val"'/g' "$file"
+    done
+}
+
+# get command line options
+while getopts $OPTIONS option
+do
+    case $option in
+        t) TEMPLATE=$OPTARG;;
+        e) EDIT=0;;
+        h) usage && exit 0;;
+        V) showVersion && exit 0;;
+        *) usage && exit 1;;
+    esac
+done
+shift $(($OPTIND - 1 ))
+
+if [ -z "$1" ]; then
+    usage && exit 1
+fi
+FILE="$1"
+
+if [ ! -f "$TEMPLATE" ]; then
+    header
+    error "The provided template file: $TEMPLATE must be valid."
+fi
+
+checkTargetDir $FILE
+checkMainDir $FILE $TEMPLATE
+calculateRootPath $FILE
+
+REPL[cmdname]=$(getFromUser "Command name ?" "${FILE##*/}")
+REPL[cmddescription]=$(getFromUser "Command description ?")
+REPL[cmdheader]=$(getFromUser "Command header ?")
+
+cp $TEMPLATE "$FILE" && chmod +x "$FILE"
+replaceInFile $FILE
+[[ ${EDIT} -eq 0 ]] && "${FCEDIT:-${VISUAL:-${EDITOR:-`which vi`}}}" "$FILE"
+
+exit 0
