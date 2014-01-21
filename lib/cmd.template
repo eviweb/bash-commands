@@ -1,0 +1,48 @@
+#! /bin/bash
+# {cmdname}
+# {cmddescription}
+#
+
+# directory and files
+DIR=$(dirname $(readlink -f $0))
+ROOT={cmdroot}
+LIB=$ROOT/lib
+FUNC=$LIB/func
+
+. $FUNC
+
+# script version
+readVersion $ROOT/VERSION
+
+# header
+HEADER="{cmdheader}"
+
+# Help message
+define Usage << "HELP"
+ 
+Usage:
+    ./{cmdname} [OPTIONS] 
+
+Options:
+    -h              display this message
+    -V              show version
+
+HELP
+
+# default command line options
+OPTIONS=":hV"
+
+# get command line options
+while getopts $OPTIONS option
+do
+    case $option in
+        h) usage && exit 0;;
+        V) showVersion && exit 0;;
+        *) usage && exit 1;;
+    esac
+done
+shift $(($OPTIND - 1 ))
+
+# command body
+
+exit 0
