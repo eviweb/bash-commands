@@ -14,7 +14,7 @@ FUNC=$LIB/func
 readVersion $ROOT/VERSION
 
 # header
-HEADER="New Executable"
+HEADER="New Executable Generator"
 
 # Help message
 define Usage << "HELP"
