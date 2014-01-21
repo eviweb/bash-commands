@@ -6,7 +6,8 @@ Available commands
 ------------------
 > please use `-h` option on a command to see its usage information    
     
-* `bin/newex` : to create executable files    
+* `bin/newex` : to create executable files
+* `bin/newcmd` : to create bash command files        
 
 
 License information
