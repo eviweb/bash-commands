@@ -113,6 +113,7 @@ function getFromUser()
         default="[$default] "
     fi
     read -e -p $msg" " -i "$default" input
+    input=$(echo "$input" | sed 's/^\[//g' | sed 's/\] //g')
     echo $input
 }
 
@@ -154,7 +155,7 @@ checkTargetDir $FILE
 checkMainDir $FILE $TEMPLATE
 calculateRootPath $FILE
 
-REPL[cmdname]=$(getFromUser "Command name ?" "${FILE##*/}")
+REPL[cmdname]=$(getFromUser "Command name ?" "${FILE##*/}");
 REPL[cmddescription]=$(getFromUser "Command description ?")
 REPL[cmdheader]=$(getFromUser "Command header ?")
 
