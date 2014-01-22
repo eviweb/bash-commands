@@ -21,13 +21,14 @@ HEADER="New Composer Project for Netbeans"
 define Usage << "HELP"
  
 Usage:
-    ./newcp [OPTIONS] PATH
+    ./newcp [OPTIONS] PATH [VERSION]
 
 Options:
     -h              display this message
     -V              show version
 
 PATH: is the path where to create the project
+VERSION: composer package version to install
 
 It creates a composer based project for Netbeans IDE.
 The basename of PATH will be used as the project name.
@@ -63,6 +64,7 @@ if [ -z "$1" ]; then
     usage && exit 1
 fi
 FILE="$1"
+VERSION="$2"
 
 header
 msg "Try to find composer command"
@@ -75,7 +77,7 @@ fi
 msg "> Found.\n"
 
 msg "Create project in $FILE"
-echo "y" | "$COMPOSER" create-project --dev -s dev --repository-url=http://satis.evidev.fr eviweb/php-template "$FILE"
+echo "y" | "$COMPOSER" create-project --dev -s dev --repository-url=http://satis.evidev.fr eviweb/php-template "$FILE" "$VERSION"
 msg "> done."
 echo ""
 exit 0
