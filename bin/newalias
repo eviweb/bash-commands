@@ -1,0 +1,99 @@
+#! /bin/bash
+# newalias
+# create a more elaborated alias to a command
+#
+
+# directory and files
+DIR=$(dirname $(readlink -f $0))
+ROOT=$(dirname $DIR)
+LIB=$ROOT/lib
+FUNC=$LIB/func
+
+. $FUNC
+
+# script version
+readVersion $ROOT/VERSION
+
+# header
+HEADER="New Alias Command Generator"
+
+# Help message
+define Usage << "HELP"
+ 
+Usage:
+    ./newalias [OPTIONS] 
+    ./newalias COMMAND PATH [ERROR_MESSAGE]
+
+Options:
+    -h              display this message
+    -V              show version
+    
+It creates an alias to the target COMMAND at the location set by PATH
+It keeps the COMMAND file name
+You can specify an ERROR_MESSAGE to be displayed in case the alias points to nothing
+
+HELP
+
+# default command line options
+OPTIONS=":hV"
+
+# create alias
+function createAlias()
+{
+    local command="$1"
+    local aliasfile="$2"
+    local message="$3"
+    local default_message="Command: $command not found."
+    
+    msg "create alias: $aliasfile to $command."
+    echo "#!/bin/bash" > $aliasfile
+    echo "# alias to: $command" >> $aliasfile
+    echo "" >> $aliasfile
+    echo "if [ ! -e \"$command\" ]; then" >> $aliasfile
+    if [ -z "$message" ]; then
+        message="$default_message"
+    fi
+    echo "    echo \"$message\"" >> $aliasfile
+    echo "    exit 1" >> $aliasfile
+    echo "fi" >> $aliasfile
+    echo "$command \$@" >> $aliasfile
+    echo "" >> $aliasfile
+    
+    chmod +x $aliasfile
+}
+
+# get command line options
+while getopts $OPTIONS option
+do
+    case $option in
+        h) usage && exit 0;;
+        V) showVersion && exit 0;;
+        *) usage && exit 1;;
+    esac
+done
+shift $(($OPTIND - 1 ))
+
+if [ -z "$1" ]; then
+    usage && exit 1
+fi
+COMMAND="$1"
+
+if [ -z "$2" ]; then
+    usage && exit 1
+fi
+if [ ! -d "$2" ]; then
+    header
+    error "The given installation path must be a valid directory."
+fi
+ALIAS_PATH=$2/$(basename $1)
+
+if [ -e "$ALIAS_PATH" ]; then
+    header
+    error "$ALIAS_PATH already exists."
+fi
+
+header
+createAlias $COMMAND $ALIAS_PATH "$3"
+msg ""
+
+exit 0
