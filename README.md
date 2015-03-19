@@ -13,6 +13,7 @@ Available commands
     
 * `bin/newex` : to create executable files    
 * `bin/newcmd` : to create bash command files    
+* `bin/newalias` : to create a more elaborated alias to a command
 * `composer/newcp` : to create new composer based project for Netbeans IDE    
 
 License information
