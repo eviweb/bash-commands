@@ -18,9 +18,9 @@ HEADER="New Bash Command Generator"
 
 # Help message
 define Usage << "HELP"
- 
+
 Usage:
-    ./newex [OPTIONS] PATH
+    ./newcmd [OPTIONS] PATH
 
 Options:
     -h              display this message
