@@ -19,15 +19,16 @@ HEADER="New Alias Command Generator"
 
 # Help message
 define Usage << "HELP"
- 
+
 Usage:
-    ./newalias [OPTIONS] 
+    ./newalias [OPTIONS]
     ./newalias COMMAND PATH [ERROR_MESSAGE]
 
 Options:
+    -f              force the alias creation if it already exists
     -h              display this message
     -V              show version
-    
+
 It creates an alias to the target COMMAND at the location set by PATH
 It keeps the COMMAND file name
 You can specify an ERROR_MESSAGE to be displayed in case the alias points to nothing
@@ -35,7 +36,7 @@ You can specify an ERROR_MESSAGE to be displayed in case the alias points to not
 HELP
 
 # default command line options
-OPTIONS=":hV"
+OPTIONS=":hVf"
 
 # create alias
 function createAlias()
@@ -44,7 +45,7 @@ function createAlias()
     local aliasfile="$2"
     local message="$3"
     local default_message="Command: $command not found."
-    
+
     msg "create alias: $aliasfile to $command."
     echo "#!/bin/bash" > $aliasfile
     echo "# alias to: $command" >> $aliasfile
@@ -58,14 +59,16 @@ function createAlias()
     echo "fi" >> $aliasfile
     echo "$command \$@" >> $aliasfile
     echo "" >> $aliasfile
-    
+
     chmod +x $aliasfile
 }
 
+FORCED=false
 # get command line options
 while getopts $OPTIONS option
 do
     case $option in
+        f) FORCED=true;;
         h) usage && exit 0;;
         V) showVersion && exit 0;;
         *) usage && exit 1;;
@@ -87,9 +90,9 @@ if [ ! -d "$2" ]; then
 fi
 ALIAS_PATH=$2/$(basename $1)
 
-if [ -e "$ALIAS_PATH" ]; then
+if [ -f "$ALIAS_PATH" ] && ! ${FORCED}; then
     header
-    error "$ALIAS_PATH already exists."
+    error "$ALIAS_PATH already exists, use the -f flag to replace the existing file."
 fi
 
 header
