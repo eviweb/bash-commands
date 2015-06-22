@@ -1,0 +1,92 @@
+#! /bin/bash
+# newccalias
+# create an alias for a command installed using composer
+#
+
+# directory and files
+DIR=$(dirname $(readlink -f $0))
+ROOT=$(dirname $DIR)
+LIB=$ROOT/lib
+FUNC=$LIB/func
+
+. $FUNC
+
+# script version
+readVersion $ROOT/VERSION
+
+# header
+HEADER="New Composer Command Alias Generator"
+
+# Help message
+define Usage << "HELP"
+
+Usage:
+    ./newccalias [OPTIONS]
+    ./newccalias COMMAND PATH
+
+Options:
+    -f              force the alias creation if it already exists
+    -h              display this message
+    -V              show version
+
+It creates an alias to the target COMMAND at the location set by PATH
+It keeps the COMMAND file name
+
+HELP
+
+# default command line options
+OPTIONS=":hVf"
+
+# create alias
+function createAlias()
+{
+    local command="$1"
+    local aliasfile="$2"
+    local template=$LIB/composer-alias.template
+    local funcs=$(cat $LIB/composerfunc)
+
+    msg "create alias: $aliasfile to $command."
+    cp $template "$aliasfile"
+    perl -pi -e "my \$replacement='$funcs'; s/{importedfunc}/\$replacement/g;" "$aliasfile"
+    sed -i 's/{aliasname}/'"$command"'/g' "$aliasfile"
+
+    chmod +x $aliasfile
+}
+
+FORCED=false
+# get command line options
+while getopts $OPTIONS option
+do
+    case $option in
+        f) FORCED=true;;
+        h) usage && exit 0;;
+        V) showVersion && exit 0;;
+        *) usage && exit 1;;
+    esac
+done
+shift $(($OPTIND - 1 ))
+
+if [ -z "$1" ]; then
+    usage && exit 1
+fi
+COMMAND="$1"
+
+if [ -z "$2" ]; then
+    usage && exit 1
+fi
+if [ ! -d "$2" ]; then
+    header
+    error "The given installation path must be a valid directory."
+fi
+ALIAS_PATH=$2/$(basename $1)
+
+if [ -f "$ALIAS_PATH" ] && ! ${FORCED}; then
+    header
+    error "$ALIAS_PATH already exists, use the -f flag to replace the existing file."
+fi
+
+header
+createAlias $COMMAND $ALIAS_PATH
+msg ""
+
+exit 0
