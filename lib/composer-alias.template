@@ -1,0 +1,16 @@
+#!/bin/bash
+# alias to composer locally installed command: {aliasname}
+
+# imported functions
+{importedfunc}
+# end imported functions
+
+CMD_NAME="{aliasname}"
+CMD=$(getComposerInstalledCommand "${CMD_NAME}")
+
+if [ -z "${CMD}" ]; then
+    echo "ERROR: Composer locally installed command '${CMD_NAME}' not found."
+    exit 1
+fi
+
+runComposerInstalledCommand "${CMD}" $@
