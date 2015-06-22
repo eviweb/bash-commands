@@ -1,0 +1,24 @@
+# get composer installed php function
+function getComposerInstalledCommand()
+{
+    local cmd="$1"
+
+    if [ -e "./bin/$1" ]; then
+        echo "./bin/$1"
+    elif  [ -e "./vendor/bin/$1" ]; then
+        echo "./vendor/bin/$1"
+    else
+        echo ""
+    fi
+}
+
+# run composer installed php function
+function runComposerInstalledCommand()
+{
+    local cmd="$1"
+    shift
+
+    php "${cmd}" $@
+
+    exit $?
+}
